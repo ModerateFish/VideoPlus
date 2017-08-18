@@ -9,4 +9,5 @@ find_library( log-lib
               log )
 
 target_link_libraries( video_recorder-lib
-                       ${log-lib} )
+                       ${log-lib}
+                       GLESv2 )

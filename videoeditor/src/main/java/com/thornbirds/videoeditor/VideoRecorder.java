@@ -11,5 +11,5 @@ public class VideoRecorder {
         System.loadLibrary("video_recorder-lib");
     }
 
-    public native String stringFromJNI();
+    protected native String stringFromJNI();
 }
