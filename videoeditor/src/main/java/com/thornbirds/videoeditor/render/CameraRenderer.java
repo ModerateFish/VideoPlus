@@ -1,5 +1,7 @@
 package com.thornbirds.videoeditor.render;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.opengl.GLES20;
@@ -11,6 +13,8 @@ import android.util.Log;
 import com.thornbirds.videoeditor.Drawer.BaseEglDrawer;
 import com.thornbirds.videoeditor.Drawer.BeautyDrawer;
 import com.thornbirds.videoeditor.Drawer.CameraDrawer;
+import com.thornbirds.videoeditor.Drawer.ImageDrawer;
+import com.thornbirds.videoeditor.R;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,6 +29,7 @@ public class CameraRenderer extends BaseEglRender implements SurfaceTexture.OnFr
     private final CameraHelper mCameraHelper;
     private BaseEglDrawer mLeftDrawer;
     private BaseEglDrawer mRightDrawer;
+    private ImageDrawer mImageDrawer;
 
     private GLSurfaceView mSurfaceView;
     private int mTextureId;
@@ -57,7 +62,13 @@ public class CameraRenderer extends BaseEglRender implements SurfaceTexture.OnFr
         mCameraHelper.startPreview(mSurfaceTexture);
         mLeftDrawer = new CameraDrawer(mTextureId);
         mRightDrawer = new BeautyDrawer(mTextureId);
+        Bitmap bitmap = BitmapFactory.decodeResource(mSurfaceView.getResources(),
+                R.drawable.game_live_icon_xingxing_normal);
+        bitmap.prepareToDraw();
+        mImageDrawer = new ImageDrawer(genTexture2D(bitmap));
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        GLES20.glEnable(GL10.GL_BLEND);
+        GLES20.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
     }
 
     @Override
@@ -70,6 +81,7 @@ public class CameraRenderer extends BaseEglRender implements SurfaceTexture.OnFr
     public void onDrawFrame(GL10 gl) {
         Log.w(TAG, "onDrawFrame");
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+        GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT);
         mSurfaceTexture.updateTexImage();
         float[] matrix = new float[16];
         // mSurfaceTexture.getTransformMatrix(mtx);
@@ -81,6 +93,12 @@ public class CameraRenderer extends BaseEglRender implements SurfaceTexture.OnFr
         mLeftDrawer.drawSelf(matrix, mCameraHelper.mPreviewWidth, mCameraHelper.mPreviewHeight);
         Matrix.translateM(matrix, 0, 2.0f, 0, 0);
         mRightDrawer.drawSelf(matrix, mCameraHelper.mPreviewWidth, mCameraHelper.mPreviewHeight);
+
+        Matrix.setIdentityM(matrix, 0);
+        Matrix.rotateM(matrix, 0, 180, 0, 0, 1);
+        Matrix.scaleM(matrix, 0, 0.1f, 0.1f, 0.1f);
+        Matrix.translateM(matrix, 0, -9f, -9f, 0);
+        mImageDrawer.drawSelf(matrix, 0, 0);
     }
 
     @Override
